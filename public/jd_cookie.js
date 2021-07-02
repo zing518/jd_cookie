@@ -1,4 +1,4 @@
-var oMask, qrcontainer, qrbox, qrcode, refresh, tip, time = null, time2 = null, jdCode = '', loginUrl = '', msgInput = '';
+var oMask, qrcontainer, qrbox, qrcode, refresh, tip, time = null, time2 = null, jdCode = '', loginUrl = '', msgInput = '', jumpMsg = '';
 window.qrLogin = function (api = '.') {
   // var script = document.createElement('script');
   // script.type = 'text/javascript';
@@ -129,8 +129,10 @@ window.qrLogin = function (api = '.') {
     msgInput = document.createElement('input');
     msgInput.id = 'msg';
     msgInput.placeholder = '请输入备注信息，方便识别账号';
-    msgInput.style.width = '100%';
-    msgInput.style.height = '24px';
+    msgInput.style.width = '256px';
+    msgInput.style.height = '30px';
+    msgInput.style.lineHeight = '30px';
+    msgInput.style.boxSizing = 'border-box';
     msgInput.style.marginTop = '16px';
     qrcontainer.appendChild(msgInput);
 
@@ -139,7 +141,7 @@ window.qrLogin = function (api = '.') {
     tip.style.wordBreak = 'break-word';
     tip.style.paddingTop = '16px';
     tip.innerHTML =
-      '请使用京东APP扫码<br>或截图用京东APP扫码<br>完成后请回到此页面复制cookie<br>请无视升级提示';
+      '请使用京东APP扫码<br>或截图用京东APP扫码<br><br><span style="color: red">请无视京东APP升级提示</span>';
     qrcontainer.appendChild(tip);
 
     get_code();
@@ -165,7 +167,9 @@ window.jdCodeLogin = function (api) {
 }
 window.jumpAppLogin = function (api) {
   if (loginUrl) {
-    const confirm = window.confirm("即将跳转到京东APP，登录后记得返回到此页面")
+    jumpMsg = window.prompt('请输入您的备注信息，方便识别账号');
+    console.log('备注的信息', jumpMsg);
+    const confirm = window.confirm("即将跳转到京东APP，如无跳转请使用手机自带浏览器打开\n\n京东APP点登录后再返回到此处")
     if (confirm) {
       window.location.href = `openapp.jdmobile://virtual/ad?params=${encodeURI(
           JSON.stringify({
@@ -204,7 +208,7 @@ function checkLogin2(user, api) {
     ajax({
       url: api + '/cookie?t=' + timeStamp,
       method: 'post',
-      data: { user, msg: document.getElementById('msg').value || '' },
+      data: { user, msg: jumpMsg || '' },
       success: function (data) {
         if (data.err === 0) {
           clearInterval(time2);
@@ -215,7 +219,7 @@ function checkLogin2(user, api) {
           if (document.getElementById('res')) document.getElementById('res').style.display = 'flex';
           if (document.getElementById('cookie')) document.getElementById('cookie').innerHTML =
               '<span>' +
-              document.getElementById('msg').value +
+              jumpMsg +
               '</span>' +
               '<p>' +
               data.cookie +
@@ -233,7 +237,6 @@ function checkLogin2(user, api) {
             }
           };
         } else if (data.err === 21) {
-          document.getElementById('tip').style.display = 'flex';
           const confirm = window.confirm("已超时，刷新浏览器重新操作？")
           clearInterval(time2);
           jdCode = '';
